@@ -40,10 +40,13 @@ def train_bpe(
                 sequences.append((symbols,count))  #保存每个segment转化成的symbols列表和对应的count
         for i in range(vocab_size-len(vocab)):
             pair_counts = Counter()
-            for symbols, count in sequences:
+            pair_to_indices = {}
+            for idx, (symbols, count) in enumerate(sequences):
                 for i in range(len(symbols) - 1):          
                     pair = (symbols[i], symbols[i + 1])
                     pair_counts[pair] += count
+                    pair_to_indices.setdefault(pair, set()).add(idx) #setdefault() 会在第一次遇到 pair 时创建一个空集合。
+                    # `idx` 是单个整数，所以用 .add(idx)
             if not pair_counts:
                 break  # No more pairs to merge
             max_pair, frequency = max(
@@ -55,17 +58,17 @@ def train_bpe(
                 new_symbol = max_pair[0] + max_pair[1]
                 vocab[len(vocab)] =new_symbol
                 # Update pair counts with the new symbol
-                new_sequences = []
-                for symbols, count in sequences:
+        
+                for idx in pair_to_indices[max_pair]:
+                    symbols, count = sequences[idx]
                     new_symbols=[]
                     i=0
                     while i < len(symbols):
                         if i + 1 < len(symbols) and (symbols[i], symbols[i + 1]) == max_pair:
-                                new_symbols.append(symbols[i]+symbols[i + 1])  
+                                new_symbols.append(new_symbol)  
                                 i=i+2  # Skip the next symbol since it's part of the merged pair 
                         else:
                             new_symbols.append(symbols[i])
                             i=i+1
-                    new_sequences.append((new_symbols,count))
-                sequences=new_sequences
+                    sequences[idx]=(new_symbols,count)
     return vocab, merges
