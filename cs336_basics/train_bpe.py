@@ -1,8 +1,6 @@
 import regex as re
 from collections import Counter
 
-from cs336_basics.pretokenization_example import find_chunk_boundaries
-
 def train_bpe(
     input_path: str,
     vocab_size: int,
@@ -33,7 +31,7 @@ def train_bpe(
         # 统计每个相邻字符对的次数
         vocab={i: bytes([i]) for i in range(256)}  # Initialize vocab with all byte values
         vocab.update({256+i: token.encode("utf-8") for i, token in enumerate(special_tokens)})  # Add special tokens to vocab
-        assert vocab_size > len(vocab), "Vocab size must be greater than length of vocab to accommodate all byte values"
+        assert vocab_size >= len(vocab), "Vocab size must be greater than length of vocab to accommodate all byte values"
         merges = []
         special_tokens_number=len(special_tokens)
         sequences = []
